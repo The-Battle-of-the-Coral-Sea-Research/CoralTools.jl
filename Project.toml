@@ -1,0 +1,9 @@
+name = "CoralTools"
+uuid = "456b9c66-a11c-41ca-89fd-0ec2d9172aac"
+authors = ["yiyuezhuo "]
+version = "0.1.0"
+
+[deps]
+CoralData = "889110da-db61-40bf-983e-4fb6a8ea23c7"
+Geodesics = "6aaf26a4-c633-11e8-35ae-8904cb805353"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
