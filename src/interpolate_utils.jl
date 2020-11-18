@@ -3,6 +3,9 @@
 earth_dist_haversine(x1, y1, x2, y2) = haversine([y1, x1], [y2, x2], EARTH_RADIUS)
 earth_dist_geodesics(x1, y1, x2, y2) = inverse_deg(x1, y1, x2, y2)[1]
 
+earth_dist_haversine(p1::SpatPos, p2::SpatPos) = earth_dist_haversine(p1.longitude, p1.latitude, p2.longitude, p2.latitude)
+earth_dist_geodesics(p1::SpatPos, p2::SpatPos) = earth_dist_geodesics(p1.longitude, p1.latitude, p2.longitude, p2.latitude)
+
 # const earth_dist = earth_dist_haversine
 # earth_dist(x1, y1, x2, y2) = earth_dist_geodesics(x1, y1, x2, y2)
 

@@ -47,3 +47,38 @@ end
         end
     end
 end
+
+@recipe function f(fleet_stpi_map::Dict{String, Vector{SpatTempPosInt}}, t::DateTime;
+                   font=nothing)#, markersize=2) 
+    # font ex: Plots.font("Sans", 4),
+    # while it's better that Recipes provides an attribute to manipuate the annotation font size.
+    longitude_vec = Float64[]
+    latitude_vec = Float64[]
+    fleet_name_vec = String[]
+    for (fleet_name, stpi_vec) in fleet_stpi_map
+        if !contains(stpi_vec, t)
+            continue
+        end
+        pos = get_pos(stpi_vec, t)
+        push!(longitude_vec, pos.longitude)
+        push!(latitude_vec, pos.latitude)
+        push!(fleet_name_vec, fleet_name)
+    end
+    @series begin
+        seriestype --> :scatter
+        label --> false
+        # series_annotations := fleet_name_vec
+        # series_annotations := Plots.series_annotations(fleet_name_vec, Plots.font("Sans", 4))
+        # Consider global font size setting as workaround. The Plots introduces too many overheads.
+        #=
+        if font === nothing
+            series_annotations := fleet_name_vec
+        else
+            series_annotations := (fleet_name_vec, font)
+        end
+        =#
+        series_annotations := (fleet_name_vec, font)
+        # markersize --> markersize
+        (longitude_vec, latitude_vec)
+    end
+end
