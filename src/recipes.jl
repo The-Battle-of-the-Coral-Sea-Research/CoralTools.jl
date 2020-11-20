@@ -67,18 +67,49 @@ end
     @series begin
         seriestype --> :scatter
         label --> false
-        # series_annotations := fleet_name_vec
-        # series_annotations := Plots.series_annotations(fleet_name_vec, Plots.font("Sans", 4))
-        # Consider global font size setting as workaround. The Plots introduces too many overheads.
-        #=
-        if font === nothing
-            series_annotations := fleet_name_vec
-        else
-            series_annotations := (fleet_name_vec, font)
-        end
-        =#
         series_annotations := (fleet_name_vec, font)
-        # markersize --> markersize
-        (longitude_vec, latitude_vec)
+        longitude_vec, latitude_vec
     end
 end
+
+@recipe function f(fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}}, t1::DateTime, t2::DateTime;
+                   font=nothing, step=Minute(10), full_only=false)
+    t_vec_ref = t1:step:t2
+    for (fleet_name, stpi_vec) in fleet_stpi_vec_map
+        if full_only # consider only the path which covered the specified interval fully.
+            if !contains(stpi_vec, t1, t2)
+                continue
+            end
+            t_vec = t_vec_ref
+        else
+            if (t_vec_ref[end] < stpi_vec[1].time) | (stpi_vec[end].time < t_vec_ref[1])
+                continue
+            end
+            t_vec = filter(t -> (t >= stpi_vec[1].time) & (t <= stpi_vec[end].time), t_vec_ref)
+            if length(t_vec) == 0 # interval is too small
+                continue
+            end
+        end
+        # pos_vec = [get_pos(stpi_vec, t) for t in t1:step:t2]
+        pos_vec = get_pos(stpi_vec, t_vec)
+        longitude_vec = map(x->x.longitude, pos_vec)
+        latitude_vec = map(x->x.latitude, pos_vec)
+        @series begin
+            label --> false
+            longitude_vec, latitude_vec
+        end
+        @series begin
+            seriestype --> :scatter
+            label --> false
+            # @show fleet_name longitude_vec latitude_vec
+            longitude_vec, latitude_vec
+        end
+        @series begin
+            seriestype --> :scatter
+            seriesalpha --> 0
+            series_annotations := ([fleet_name], font)
+            [longitude_vec[end]], [latitude_vec[end]]
+        end
+    end
+end
+

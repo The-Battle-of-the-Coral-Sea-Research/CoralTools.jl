@@ -38,7 +38,7 @@ function do_action!(mf::MoveForward{Nothing}, as::ActionState, ae::ActionEnv)
     push!(ae.return_vec, SpatTempPos(longitude, latitude))
 end
 
-function action_vec_to_stp_vec(action_vec::Vector{Action}, fleet_stpi_vec_map)
+function action_vec_to_stp_vec(action_vec::AbstractVector{Action}, fleet_stpi_vec_map)
     as = ActionState(0,0,0)
     ae = ActionEnv(fleet_stpi_vec_map, SpatTempPos[])
     for action in action_vec
