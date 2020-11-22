@@ -5,7 +5,8 @@ using Geodesics
 using CoralData
 using CoralData: SectorSearchPlan, SpatTempPos, SpatPos,
     Action, MoveTo, TurnAngleTo, TurnAngle, MoveForward,
-    mi, p, pp
+    mi, p, pp,
+    normal_single_line_search, get_deg_vec
 using Dates
 using Distances
 # using Plots

@@ -1,61 +1,63 @@
 
-#=
-@recipe function f(fleet_trajectory_map::Dict{String, Vector{SpatTempPos}})
-    for (fleet_name, stp_vec) in fleet_trajectory_map
-        @series begin
-            longitude = map(p -> p.longitude, stp_vec)
-            latitude = map(p -> p.latitude, stp_vec)
-            label --> fleet_name
-            (longitude, latitude)
-        end
-    end
-end
-=#
-
-function get_deg_vec(deg_start, deg_end, length; search_lines)
-    if deg_end < deg_start
-        deg_end = deg_end + 360
-    end
-    if !search_lines
-        return range(deg_start, deg_end, length=length) .% 360
-    else
-        diff = abs(deg_end - deg_start) / (length+1) / 2
-        return (range(deg_start, deg_end, length=length+1)[1:end-1] .+ diff) .% 360
-    end
-end
-
 function make_sector_search_lines_geo(base_long, base_lat, deg_start, deg_end, radius, num;
-            search_lines, color=:yellow)
-    deg_vec = get_deg_vec(deg_start, deg_end, num; search_lines)
-    long_lat_vec = forward_deg.(base_long, base_lat, deg_vec, radius)
-	long_vec = map(long_lat->long_lat[1], long_lat_vec)
-    lat_vec = map(long_lat->long_lat[2], long_lat_vec)
-    return long_vec, lat_vec
+    search_lines)
+deg_vec = get_deg_vec(deg_start, deg_end, num; search_lines)
+long_lat_vec = forward_deg.(base_long, base_lat, deg_vec, radius)
+long_vec = map(long_lat->long_lat[1], long_lat_vec)
+lat_vec = map(long_lat->long_lat[2], long_lat_vec)
+return long_vec, lat_vec
 end
 
-@recipe function f(plan::Dict{String, SectorSearchPlan}; color=:yellow, particles=100)
+function make_sector_search_lines_geo(ssp::SectorSearchPlan; search_lines, num=nothing)
+if num === nothing
+num = ssp.num
+end
+return make_sector_search_lines_geo(ssp.base.longitude, ssp.base.latitude,
+    ssp.bearing[1], ssp.bearing[2], ssp.distance, num; search_lines)
+end
+
+
+@recipe function plot_plan(plan::Dict{String, SectorSearchPlan}; color=:yellow, particles=100, alpha=0.25, 
+        include_search_lines=false, search_lines_alpha=0.25, search_lines_color=:blue)
     for (name, ssp) in plan
+        base_long = ssp.base.longitude
+        base_lat = ssp.base.latitude
         @series begin
-            base_long = ssp.base.longitude
-            base_lat = ssp.base.latitude
+            #=
             long_vec, lat_vec = make_sector_search_lines_geo(base_long, base_lat, 
                 ssp.bearing[1], ssp.bearing[2], ssp.distance, particles, search_lines=false) # num=2, search_lines=false will select min, max directions
-            seriestype  -->  :shape
-            seriesalpha --> 0.25
+            =#
+            long_vec, lat_vec = make_sector_search_lines_geo(ssp; search_lines=false, num=particles)
+            seriestype  --> :shape
+            seriesalpha --> alpha
             seriescolor --> color
             [base_long; long_vec], [base_lat; lat_vec]
         end
+        if include_search_lines
+            #=
+            long_s_vec, lat_s_vec = make_sector_search_lines_geo(base_long, base_lat, 
+                ssp.bearing[1], ssp.bearing[2], ssp.distance, ssp.num, search_lines=true)
+            =#
+            long_s_vec, lat_s_vec = make_sector_search_lines_geo(ssp; search_lines=true)
+            for (long_end, lat_end) in zip(long_s_vec, lat_s_vec)
+                @series begin
+                    seriesalpha --> search_lines_alpha
+                    seriescolor --> search_lines_color
+                    [base_long, long_end], [base_lat, lat_end]
+                end
+            end
+        end
     end
 end
 
-@recipe function f(fleet_stpi_map::Dict{String, Vector{SpatTempPosInt}}, t::DateTime;
+@recipe function plot_fleet_stpi_vec_map(fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}}, t::DateTime;
                    font=nothing)#, markersize=2) 
     # font ex: Plots.font("Sans", 4),
     # while it's better that Recipes provides an attribute to manipuate the annotation font size.
     longitude_vec = Float64[]
     latitude_vec = Float64[]
     fleet_name_vec = String[]
-    for (fleet_name, stpi_vec) in fleet_stpi_map
+    for (fleet_name, stpi_vec) in fleet_stpi_vec_map
         if !contains(stpi_vec, t)
             continue
         end
@@ -72,7 +74,7 @@ end
     end
 end
 
-@recipe function f(fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}}, t1::DateTime, t2::DateTime;
+@recipe function plot_fleet_stpi_vec_map(fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}}, t1::DateTime, t2::DateTime;
                    font=nothing, step=Minute(10), full_only=false)
     t_vec_ref = t1:step:t2
     for (fleet_name, stpi_vec) in fleet_stpi_vec_map

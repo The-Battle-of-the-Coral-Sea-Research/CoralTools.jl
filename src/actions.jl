@@ -38,6 +38,10 @@ function do_action!(mf::MoveForward{Nothing}, as::ActionState, ae::ActionEnv)
     push!(ae.return_vec, SpatTempPos(longitude, latitude))
 end
 
+# Vector{Action} -> Vector{SpatTempPos}
+
+# deprecated?
+
 function action_vec_to_stp_vec(action_vec::AbstractVector{Action}, fleet_stpi_vec_map)
     as = ActionState(0,0,0)
     ae = ActionEnv(fleet_stpi_vec_map, SpatTempPos[])
@@ -46,4 +50,13 @@ function action_vec_to_stp_vec(action_vec::AbstractVector{Action}, fleet_stpi_ve
     end
     return ae.return_vec
 end
+
+function Vector{SpatTempPos}(action_vec::AbstractVector{Action}, fleet_stpi_vec_map)
+    return action_vec_to_stp_vec(action_vec, fleet_stpi_vec_map)
+end
+
+# SectorSearchPlan -> Vector{Vector{Action}}
+
+
+
 
