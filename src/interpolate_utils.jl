@@ -69,6 +69,23 @@ interpolate_stp_vec(stp_vec) = interpolate_stp_vec_geodesics(stp_vec) # "recomme
 
 Vector{SpatTempPosInt}(stp_vec::AbstractVector{SpatTempPos}) = interpolate_stp_vec(stp_vec)
 
+function Vector{SpatTempPosInt}(action_vec::AbstractVector{Action}, 
+                                fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}})
+    stp_vec = Vector{SpatTempPos}(action_vec, fleet_stpi_vec_map)
+    return Vector{SpatTempPosInt}(stp_vec)
+end
+
+function Vector{SpatTempPosInt}(action_vec::AbstractVector{Action})
+    # If `fleet_stpi_vec_map` is not needed (don't need to access dynamic fleet location),
+    # just create a fake empty dict. But it may cause confusing error info when fleet_stpi_vec_map is
+    # needed and forget to add it as argument.
+    return Vector{SpatTempPosInt}(action_vec, Dict{String, Vector{SpatTempPosInt}}())
+end
+
+function Vector{Vector{SpatTempPosInt}}(ssp::SectorSearchPlan, time_begin::DateTime, time_end::DateTime)
+    return Vector{SpatTempPosInt}.(Vector{Vector{Action}}(ssp, time_begin, time_end))
+end
+
 function contains(stpi_vec::AbstractVector{SpatTempPosInt}, time::DateTime)
     return (time >= stpi_vec[1].time) & (time <= stpi_vec[end].time)
 end
@@ -131,24 +148,26 @@ get_pos_geodesics(stpi_vec, t) = get_pos(interpolate_stpi_geodesics, stpi_vec, t
 
 get_pos(stpi_vec, t) = get_pos_geodesics(stpi_vec, t)
 
+"""
+    get_speed(earth_dist::Function, stpi_vec::AbstractVector{SpatTempPosInt}, t::DateTime; dt=Minute(1))
+
+Get speed at time t (km/hour).
+"""
+function get_speed(earth_dist::Function, stpi_vec::AbstractVector{SpatTempPosInt}, t::DateTime; dt=Minute(1), knot=false)
+    p1 = get_pos(stpi_vec, t + dt)
+    p2 = get_pos(stpi_vec, t)
+    v = earth_dist(p1, p2) * (Minute(60) / dt)
+    if knot
+        v = v / mi
+    end
+    return v
+end
+
+
+function get_speed(stpi_vec::AbstractVector{SpatTempPosInt}, t::DateTime; 
+                   dt=Minute(1), knot=false)
+    return get_speed(earth_dist_geodesics, stpi_vec, t; dt, knot)
+end
+
 # helpers
 
-"""
-    flatten_stpi_vec_group(stpi_vec_group_map)
-
-Flatten out the group level by reducing it to name.
-This function can be used to convert scouting plan groups to fleet dict like data.
-
-Dict("A" => [a1, a2, a3], "B" => [b1, b2, b3])
-->
-Dict("A_1"=>a1, "A_2"=>a2, "A_3"=>a3, "B_1"=>b1, "B_2"=>b2, "B_3"=>b3)
-"""
-function flatten_stpi_vec_group(vec_group_map::Dict{String, <:AbstractVector{T}}) where T
-    rd = Dict{String, T}()
-    for (key, v_vec) in vec_group_map
-        for i in eachindex(v_vec)
-            rd["$(key)_$i"] = v_vec[i]
-        end
-    end
-    return rd
-end

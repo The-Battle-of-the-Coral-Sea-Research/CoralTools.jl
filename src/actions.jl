@@ -55,8 +55,18 @@ function Vector{SpatTempPos}(action_vec::AbstractVector{Action}, fleet_stpi_vec_
     return action_vec_to_stp_vec(action_vec, fleet_stpi_vec_map)
 end
 
-# SectorSearchPlan -> Vector{Vector{Action}}
+Vector{SpatTempPos}(action_vec::AbstractVector{Action}) = Vector{SpatTempPos}(action_vec, Dict())
 
 
+function Dict{String, Vector{SpatTempPosInt}}(fleet_trajectory_map::Dict{String, Vector{SpatTempPos}})
+    return Dict(
+        fleet_name=>Vector{SpatTempPosInt}(stp_vec) 
+        for (fleet_name, stp_vec) in fleet_trajectory_map
+    )
+end
 
+function Dict{String, Vector{SpatTempPosInt}}(scouting_action_group_map::Dict{String, Vector{Vector{Action}}}, fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}})
+    rd = Dict{String, Vector{SpatTempPos}}(scouting_action_group_map, fleet_stpi_vec_map)
+    return Dict{String, Vector{SpatTempPosInt}}(rd)
+end
 

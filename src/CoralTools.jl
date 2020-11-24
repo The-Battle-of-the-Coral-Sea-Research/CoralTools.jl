@@ -11,7 +11,7 @@ using Dates
 using Distances
 # using Plots
 
-export forward_deg, inverse_deg, get_pos, interpolate_stp_vec, DateTime
+export forward_deg, inverse_deg, get_pos, get_speed, SpatTempPosInt
 
 include("defs.jl")
 include("geodesics_utils.jl")
