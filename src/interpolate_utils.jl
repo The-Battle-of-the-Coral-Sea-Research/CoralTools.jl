@@ -69,13 +69,13 @@ interpolate_stp_vec(stp_vec) = interpolate_stp_vec_geodesics(stp_vec) # "recomme
 
 Vector{SpatTempPosInt}(stp_vec::AbstractVector{SpatTempPos}) = interpolate_stp_vec(stp_vec)
 
-function Vector{SpatTempPosInt}(action_vec::AbstractVector{Action}, 
+function Vector{SpatTempPosInt}(action_vec::AbstractVector{<:Action}, 
                                 fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}})
     stp_vec = Vector{SpatTempPos}(action_vec, fleet_stpi_vec_map)
     return Vector{SpatTempPosInt}(stp_vec)
 end
 
-function Vector{SpatTempPosInt}(action_vec::AbstractVector{Action})
+function Vector{SpatTempPosInt}(action_vec::AbstractVector{<:Action})
     # If `fleet_stpi_vec_map` is not needed (don't need to access dynamic fleet location),
     # just create a fake empty dict. But it may cause confusing error info when fleet_stpi_vec_map is
     # needed and forget to add it as argument.
@@ -169,5 +169,6 @@ function get_speed(stpi_vec::AbstractVector{SpatTempPosInt}, t::DateTime;
     return get_speed(earth_dist_geodesics, stpi_vec, t; dt, knot)
 end
 
-# helpers
+# helper for uniform linear motion
+get_speed(stpi_vec::AbstractVector{SpatTempPosInt}; dt=Minute(1), knot=false) = get_speed(stpi_vec, stpi_vec[1].time; dt, knot)
 

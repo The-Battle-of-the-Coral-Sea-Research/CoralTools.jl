@@ -38,11 +38,11 @@ function do_action!(mf::MoveForward{Nothing}, as::ActionState, ae::ActionEnv)
     push!(ae.return_vec, SpatTempPos(longitude, latitude))
 end
 
-# Vector{Action} -> Vector{SpatTempPos}
+# Vector{<:Action} -> Vector{SpatTempPos}
 
 # deprecated?
 
-function action_vec_to_stp_vec(action_vec::AbstractVector{Action}, fleet_stpi_vec_map)
+function action_vec_to_stp_vec(action_vec::AbstractVector{<:Action}, fleet_stpi_vec_map)
     as = ActionState(0,0,0)
     ae = ActionEnv(fleet_stpi_vec_map, SpatTempPos[])
     for action in action_vec
@@ -51,11 +51,11 @@ function action_vec_to_stp_vec(action_vec::AbstractVector{Action}, fleet_stpi_ve
     return ae.return_vec
 end
 
-function Vector{SpatTempPos}(action_vec::AbstractVector{Action}, fleet_stpi_vec_map)
+function Vector{SpatTempPos}(action_vec::AbstractVector{<:Action}, fleet_stpi_vec_map)
     return action_vec_to_stp_vec(action_vec, fleet_stpi_vec_map)
 end
 
-Vector{SpatTempPos}(action_vec::AbstractVector{Action}) = Vector{SpatTempPos}(action_vec, Dict())
+Vector{SpatTempPos}(action_vec::AbstractVector{<:Action}) = Vector{SpatTempPos}(action_vec, Dict())
 
 
 function Dict{String, Vector{SpatTempPosInt}}(fleet_trajectory_map::Dict{String, Vector{SpatTempPos}})
@@ -65,8 +65,11 @@ function Dict{String, Vector{SpatTempPosInt}}(fleet_trajectory_map::Dict{String,
     )
 end
 
-function Dict{String, Vector{SpatTempPosInt}}(scouting_action_group_map::Dict{String, Vector{Vector{Action}}}, fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}})
+function Dict{String, Vector{SpatTempPosInt}}(scouting_action_group_map::Dict{String, <:Vector{<:Vector{<:Action}}}, fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}})
     rd = Dict{String, Vector{SpatTempPos}}(scouting_action_group_map, fleet_stpi_vec_map)
     return Dict{String, Vector{SpatTempPosInt}}(rd)
 end
 
+function Dict{String, Vector{SpatTempPosInt}}(rd::Dict{String, Vector{Vector{SpatTempPosInt}}})
+    return flatten_vec_group(rd)
+end
