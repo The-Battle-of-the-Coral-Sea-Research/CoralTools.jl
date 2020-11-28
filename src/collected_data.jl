@@ -1,4 +1,5 @@
 
+"""
 const used_land_based_group_map =
 let S=SectorSearchPlan, V=Vector{Vector{SpatTempPosInt}}, VVA=Vector{Vector{Action}}, D=set_distance
     
@@ -43,5 +44,13 @@ let S=SectorSearchPlan, V=Vector{Vector{SpatTempPosInt}}, VVA=Vector{Vector{Acti
         "Tulagi, Z F, 8 May" => V(normal_single_sector_search.(Tulagi, [215, 225, 235], 600mi, CT(8, 7, 18), CT(8, 16, 30), -90, 60mi)),
         "Tulagi, 3, 8 May" => V([[MoveTo(Tulagi, CT(8, 13, 15)), MoveTo(day8_target), MoveTo(Tulagi, CT(8, 21, 15))]]), # attacking planes
     )
+end
+
+# const used_carrier_based_gr
+"""
+
+function get_collected_data(fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}})
+    get_pos_by_name(name, time) = get_pos(fleet_stpi_vec_map[name], time)
+    return get_collected_data(get_pos_by_name, forward_deg, Vector{Vector{SpatTempPosInt}})
 end
 

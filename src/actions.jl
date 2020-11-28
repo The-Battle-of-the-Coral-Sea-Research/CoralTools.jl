@@ -73,3 +73,10 @@ end
 function Dict{String, Vector{SpatTempPosInt}}(rd::Dict{String, Vector{Vector{SpatTempPosInt}}})
     return flatten_vec_group(rd)
 end
+
+function Dict{String, Vector{Vector{SpatTempPosInt}}}(scouting_action_group_map::Dict{String, Vector{Vector{Action}}}, fleet_stpi_vec_map::Dict{String})
+    return Dict{String, Vector{Vector{SpatTempPosInt}}}(
+        key => map(x->Vector{SpatTempPosInt}(x, fleet_stpi_vec_map), soucting_action_group) 
+        for (key, soucting_action_group) in scouting_action_group_map
+    )
+end
