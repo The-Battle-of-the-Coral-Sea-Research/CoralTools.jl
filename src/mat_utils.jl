@@ -16,6 +16,15 @@ function _make_observations(time_begin::DateTime, time_end::DateTime, step::ST,
             continue
         end
         cri = cri_vec[cri_idx]
+        # cri |> dump
+        if length(cri.added_plan) == 0
+            continue
+        end
+        #=
+        if cri.time_begin == cri.time_end # Cancel, ex: the MO Striking Force scouting at morning of 7 May 
+            continue
+        end
+        =#
         cancelled_map[cri.cancelled_plan_key] = cri.time_begin
         added_map[cri.cancelled_plan_key] = cri.added_plan
     end
@@ -47,6 +56,7 @@ end
 function get_pos_with_time(tv_map, stpi_vec_map)
     spt_vec_map = Dict{String, Vector{SpatTempPos}}()
     for (stpi_vec_key, tv) in tv_map
+        # @show stpi_vec_key stpi_vec_map[stpi_vec_key] tv
         sp_vec = get_pos(stpi_vec_map[stpi_vec_key], tv)
         spt_vec = [SpatTempPos(sp.longitude, sp.latitude, t) for (sp, t) in zip(sp_vec, tv)]
         spt_vec_map[stpi_vec_key] = spt_vec
@@ -61,7 +71,7 @@ function make_observations(time_range::StepRange{DateTime, T}, stpi_vec_map, cri
     neg_map, pos_map, cancelled_map, added_map = _make_observations(time_begin, time_end, step, stpi_vec_map, cri_vec_vec)
     
     neg_spt_vec_map = get_pos_with_time(neg_map, stpi_vec_map)
-    pos_spt_vec_map = get_pos_with_time(pos_map, stpi_vec_map)
+    pos_spt_vec_map = get_pos_with_time(pos_map, added_map)
     
     return neg_spt_vec_map, pos_spt_vec_map
 end

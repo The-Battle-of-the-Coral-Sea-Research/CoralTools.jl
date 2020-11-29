@@ -82,6 +82,14 @@ function Vector{SpatTempPosInt}(action_vec::AbstractVector{<:Action})
     return Vector{SpatTempPosInt}(action_vec, Dict{String, Vector{SpatTempPosInt}}())
 end
 
+function Vector{Vector{SpatTempPosInt}}(action_vec_vec::AbstractVector{<:AbstractVector{<:Action}},
+        fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}})
+    return map(action_vec_vec) do action_vec
+        return Vector{SpatTempPosInt}(action_vec, fleet_stpi_vec_map)
+    end
+end
+
+
 function Vector{Vector{SpatTempPosInt}}(ssp::SectorSearchPlan, time_begin::DateTime, time_end::DateTime)
     return Vector{SpatTempPosInt}.(Vector{Vector{Action}}(ssp, time_begin, time_end))
 end
@@ -101,7 +109,7 @@ end
 
 function interpolate_stpi_geodesics(t, left_stpi, right_stpi)
     p = (t - left_stpi.time) / (right_stpi.time - left_stpi.time)
-    if p == 0
+    if (p == 0) | (right_stpi.d == 0)
         return SpatPos(left_stpi.longitude, left_stpi.latitude)
     end
     _dist, azu, _azu_back = inverse_deg(left_stpi.longitude, left_stpi.latitude, right_stpi.longitude, right_stpi.latitude)

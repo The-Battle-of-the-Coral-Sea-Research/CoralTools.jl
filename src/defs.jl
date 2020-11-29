@@ -58,8 +58,12 @@ function ContactReportInt(cr::ContactReport{SpatPos})
     return ContactReportInt(cr.cancelled_plan, cancelled_plan_key, cr.time_recv, cr.time_begin, added_plan)
 end
 
-function ContactReportInt(cr::ContactReport{RelPos})
-    ContactReport(cancel_plan, time_recv, time_begin, time_end, SpatPos(cr.pos), angle, speed) |> ContactReportInt
+function ContactReportInt(cr::ContactReport{<:RelPos})
+    ContactReport(cr.cancelled_plan, cr.time_recv, cr.time_begin, cr.time_end, SpatPos(cr.pos), cr.angle, cr.speed) |> ContactReportInt
+end
+
+function ContactReportInt(cr::ContactReport{<:RelPos}, stpi_vec_map::Dict{String, Vector{SpatTempPosInt}})
+    ContactReport(cr.cancelled_plan, cr.time_recv, cr.time_begin, cr.time_end, SpatPos(cr.pos, stpi_vec_map, cr.time_begin), cr.angle, cr.speed) |> ContactReportInt
 end
 
 ContactReportInt(cr, stpi_vec_map) = ContactReportInt(cr)
