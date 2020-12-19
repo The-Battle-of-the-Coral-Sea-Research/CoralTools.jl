@@ -1,33 +1,35 @@
 
 function make_sector_search_lines_geo(base_long, base_lat, deg_start, deg_end, radius, num;
-    search_lines)
-deg_vec = get_deg_vec(deg_start, deg_end, num; search_lines)
-long_lat_vec = forward_deg.(base_long, base_lat, deg_vec, radius)
-long_vec = map(long_lat->long_lat[1], long_lat_vec)
-lat_vec = map(long_lat->long_lat[2], long_lat_vec)
-return long_vec, lat_vec
+                                      search_lines)
+    deg_vec = get_deg_vec(deg_start, deg_end, num; search_lines)
+    long_lat_vec = forward_deg.(base_long, base_lat, deg_vec, radius)
+    long_vec = map(long_lat->long_lat[1], long_lat_vec)
+    lat_vec = map(long_lat->long_lat[2], long_lat_vec)
+    return long_vec, lat_vec
 end
 
 function make_sector_search_lines_geo(ssp::SectorSearchPlan; search_lines, num=nothing)
-if num === nothing
-num = ssp.num
-end
-return make_sector_search_lines_geo(ssp.base.longitude, ssp.base.latitude,
-    ssp.bearing[1], ssp.bearing[2], ssp.distance, num; search_lines)
+    if num === nothing
+        num = ssp.num
+    end
+    return make_sector_search_lines_geo(ssp.base.longitude, ssp.base.latitude,
+        ssp.bearing[1], ssp.bearing[2], ssp.distance, num; search_lines)
 end
 
 
 @recipe function plot_plan(plan::Dict{String, SectorSearchPlan}; color=:yellow, particles=100, alpha=0.25, 
-        include_search_lines=false, search_lines_alpha=0.25, search_lines_color=:blue)
+                           include_search_lines=false, search_lines_alpha=0.25, search_lines_color=:blue, 
+                           include_sector_name=false, sector_name_outer_percent=0.1)
     for (name, ssp) in plan
         base_long = ssp.base.longitude
         base_lat = ssp.base.latitude
+
+        #=
+        long_vec, lat_vec = make_sector_search_lines_geo(base_long, base_lat, 
+            ssp.bearing[1], ssp.bearing[2], ssp.distance, particles, search_lines=false) # num=2, search_lines=false will select min, max directions
+        =#
+        long_vec, lat_vec = make_sector_search_lines_geo(ssp; search_lines=false, num=particles)
         @series begin
-            #=
-            long_vec, lat_vec = make_sector_search_lines_geo(base_long, base_lat, 
-                ssp.bearing[1], ssp.bearing[2], ssp.distance, particles, search_lines=false) # num=2, search_lines=false will select min, max directions
-            =#
-            long_vec, lat_vec = make_sector_search_lines_geo(ssp; search_lines=false, num=particles)
             seriestype  --> :shape
             seriesalpha --> alpha
             seriescolor --> color
@@ -47,11 +49,20 @@ end
                 end
             end
         end
+        if include_sector_name
+            @series begin
+                p = sector_name_outer_percent
+                long_text = base_long * (1-p) + p * mean(long_vec)
+                lat_text = base_lat * (1-p) + p * mean(lat_vec)
+                markersize --> 0
+                Dict(name => SpatPos(long_text, lat_text))
+            end
+        end
     end
 end
 
 @recipe function plot_fleet_stpi_vec_map(fleet_stpi_vec_map::Dict{String, Vector{SpatTempPosInt}}, t::DateTime;
-                   font=nothing, show_label=true)#, markersize=2) 
+                    font=nothing, show_label=true)#, markersize=2) 
     # font ex: Plots.font("Sans", 4),
     # while it's better that Recipes provides an attribute to manipuate the annotation font size.
     longitude_vec = Float64[]

@@ -76,6 +76,32 @@ function make_observations(time_range::StepRange{DateTime, T}, stpi_vec_map, cri
     return neg_spt_vec_map, pos_spt_vec_map
 end
 
+function DataFrame(spt_vec_map::Dict{String, Vector{SpatTempPos}})
+    df = DataFrame(Iterators.flatten(values(spt_vec_map)))
+    df.key = Iterators.flatten(repeat([key], length(value)) for (key, value) in spt_vec_map) |> collect |> categorical
+    return df
+    # df_neg[!, :obs] .= -1.
+end
+
+function DataFrame(spt_vec_map, obs)
+    df = DataFrame(spt_vec_map)
+    df[!, :obs] .= obs
+    return df
+end
+
+function DataFrame(time_range::StepRange{DateTime, <:Period}, stpi_vec_map::Dict{String, Vector{SpatTempPosInt}}, 
+                   cri_vec_vec::Vector{Vector{ContactReportInt}})
+    neg_spt_vec_map, pos_spt_vec_map = make_observations(time_range, stpi_vec_map, cri_vec_vec)
+    df = [DataFrame(neg_spt_vec_map, -1.); DataFrame(pos_spt_vec_map, 1.)]
+    return df
+end
+
+function DataFrame(time_range::StepRange{DateTime, <:Period}, stpi_vec_map::Dict{String, Vector{SpatTempPosInt}})
+    return DataFrame(time_range, stpi_vec_map, Vector{ContactReportInt}[])
+end
+
+
+
 #=
 
 # Given neg_spt_vec_map, pos_spt_vec_map
@@ -86,3 +112,4 @@ df_neg = DataFrame(Iterators.flatten(values(neg_spt_vec_map)))
 df_neg.key = Iterators.flatten(repeat([key], length(value)) for (key, value) in neg_spt_vec_map) |> collect |> categorical
 
 =#
+
