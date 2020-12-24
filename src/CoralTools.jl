@@ -2,7 +2,7 @@ module CoralTools
 
 using RecipesBase
 using Geodesics
-using Turf
+# using Turf
 using CoralData
 using CoralData: SectorSearchPlan, SpatTempPos, SpatPos, # Elementary types
     Action, MoveTo, TurnAngleTo, TurnAngle, MoveForward, # Actions

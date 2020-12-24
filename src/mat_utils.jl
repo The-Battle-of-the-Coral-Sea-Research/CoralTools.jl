@@ -45,9 +45,10 @@ function _make_observations(time_begin::DateTime, time_end::DateTime, step::ST,
     for (stpi_vec_key, stpi_vec) in added_map
         idx_begin = searchsortedfirst(t_vec_ref, max(time_begin, stpi_vec[1].time)) # t_vec_ref will not be "collected" from this line.
         idx_end = searchsortedlast(t_vec_ref, min(time_end, stpi_vec[end].time))
-        if (idx_begin == 0) | (idx_end > length(t_vec_ref))
+        if (idx_end == 0) | (idx_begin > length(t_vec_ref))
             continue
         end
+        # @show (idx_begin, step, idx_end, length(t_vec_ref))
         pos_map[stpi_vec_key] = t_vec_ref[idx_begin]:step:t_vec_ref[idx_end]
     end
     return neg_map, pos_map, cancelled_map, added_map
