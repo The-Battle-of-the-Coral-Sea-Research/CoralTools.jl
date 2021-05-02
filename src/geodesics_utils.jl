@@ -31,6 +31,8 @@ end
 
 function forward_deg(sp::SpatPos, az_deg, dist)
     longitude, latitude, azimuth = forward_deg(sp.longitude, sp.latitude, az_deg, dist)
+    sp = SpatPos(longitude, latitude)
+    # return sp, azimuth
     return SpatPos(longitude, latitude), azimuth
 end
 inverse_deg(sp1::SpatPos, sp2::SpatPos) = inverse_deg(sp1.longitude, sp1.latitude, sp2.longitude, sp2.latitude)

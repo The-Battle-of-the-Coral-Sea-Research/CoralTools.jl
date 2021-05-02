@@ -14,6 +14,7 @@ import DataFrames: DataFrame
 using Dates
 using Distances
 using Statistics: mean
+using CategoricalArrays
 
 # using Plots
 
